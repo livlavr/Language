@@ -5,12 +5,12 @@ SUBMODULE_SRC =
 B_SUBMODULES  = Color-printf/color_printf.cpp Stack/src/recalloc.cpp Stack/src/stack_public.cpp \
 				Stack/src/stack_security.cpp Stack/src/stack.cpp Stack/src/stack_dump.cpp
 
-BUILD_DIR     = ./build/
-SRC_DIR       = ./src/
-CFLAGS        = ____
-B_CFLAGS      = -I inc -I Custom-asserts -I Color-printf -I Binary-tree/inc -I Debug-macros -I Stack/inc
+FRONT_DIR     = ./Frontend
+BUILD_DIR     = /build/
+SRC_DIR       = /src/
+LIBS          = -I libs -I libs/Custom-asserts -I libs/Color-printf -I libs/Binary-tree/inc -I libs/Debug-macros -I libs/Buffer
 
-TARGET        = ____
+FRONTEND        = Frontend
 OBJECT        = $(patsubst %.cpp, %.o, $(SRC))
 BUILD_OBJ     = $(addprefix $(BUILD_DIR), $(OBJECT))
 
@@ -33,23 +33,25 @@ DED_FLAGS     = -D _DEBUG -ggdb2 -std=c++17 -O0 -Wall -Wextra -Weffc++          
 				-fstack-protector -fstrict-overflow -flto-odr-type-merging -fno-omit-frame-pointer        \
 				-Wlarger-than=8192 -Wstack-usage=8192 -pie -fPIE -Werror=vla
 
-vpath %.o   $(BUILD_DIR)
-vpath %.cpp $(SRC_DIR)
-
 .PHONY : clean all
 
-all : $(addprefix $(SRC_DIR), $(SRC))
-	clear
-	@mkdir -p build
-	$(CXX) $(CFLAGS) $^ $(SUBMODULE_SRC) -o $(addprefix $(BUILD_DIR), $(TARGET))
-	@printf "$(GREEN_COLOR)$(TARGET) COMPILED$(DEFAULT_COLOR)\n"
+# all : $(addprefix $(SRC_DIR), $(SRC))
+# 	clear
+# 	@mkdir -p build
+# 	$(CXX) $(CFLAGS) $^ $(SUBMODULE_SRC) -o $(addprefix $(BUILD_DIR), $(TARGET))
+# 	@printf "$(GREEN_COLOR)$(TARGET) COMPILED$(DEFAULT_COLOR)\n"
+#
+# run : $(addprefix $(SRC_DIR), $(SRC))
+# 	clear
+# 	@mkdir -p build
+# 	$(CXX) $(CFLAGS) $^ $(SUBMODULE_SRC) -o $(addprefix $(BUILD_DIR), $(TARGET))
+# 	@printf "$(GREEN_COLOR)$(TARGET) COMPILED$(DEFAULT_COLOR)\n"
+# 	$(addprefix $(BUILD_DIR), $(TARGET))
 
-run : $(addprefix $(SRC_DIR), $(SRC))
+frontend : $(addprefix $(FRONT_DIR)$(SRC_DIR), $(SRC))
 	clear
-	@mkdir -p build
-	$(CXX) $(CFLAGS) $^ $(SUBMODULE_SRC) -o $(addprefix $(BUILD_DIR), $(TARGET))
-	@printf "$(GREEN_COLOR)$(TARGET) COMPILED$(DEFAULT_COLOR)\n"
-	$(addprefix $(BUILD_DIR), $(TARGET))
+	@mkdir -p $(FRONT_DIR)/build
+	$(CXX) $(LIBS) $^ $(SUBMODULE_SRC) -o $(addprefix $(FRONT_DIR)$(BUILD_DIR), $(FRONTEND))
 
 clean :
 	@rm -f -r $(addprefix $(BUILD_DIR), *.o) *.dSYM
