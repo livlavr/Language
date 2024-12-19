@@ -8,10 +8,10 @@
 #include "custom_asserts.h"
 #include "color_printf.h"
 #include "BufferDefinitions.h"
-
+#include "debug_macros.h"
 
 template <typename T>
-TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
@@ -20,7 +20,7 @@ TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
 
     GetSizeOfBuffer(&(buffer_struct->size), filename);
 
-    buffer_struct->data = (T*)calloc(buffer_struct->size + 1, sizeof(T));
+    buffer_struct->data = (T*)calloc(size_t(buffer_struct->size + 1), sizeof(T));
     warning(buffer_struct->data, CALLOC_ERROR);
 
     ScanFileToBuffer<T>(buffer_struct, filename);
@@ -28,7 +28,7 @@ TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
     return SUCCESS;
 }
 
-TYPE_OF_ERROR GetSizeOfBuffer(size_t* size, const char* filename) {
+inline TYPE_OF_ERROR GetSizeOfBuffer(int* size, const char* filename) {
     check_expression(size, POINTER_IS_NULL);
     check_expression(filename, POINTER_IS_NULL);
 
@@ -37,13 +37,13 @@ TYPE_OF_ERROR GetSizeOfBuffer(size_t* size, const char* filename) {
     int stat_check = stat(filename, &buffer_information);
     warning(stat_check != -1, STAT_ERROR);
 
-    *size = (size_t)buffer_information.st_size;
+    *size = (int)buffer_information.st_size;
 
     return SUCCESS;
 }
 
 template <typename T>
-TYPE_OF_ERROR ScanFileToBuffer(Buffer<T>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR ScanFileToBuffer(Buffer<T>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
@@ -54,7 +54,7 @@ TYPE_OF_ERROR ScanFileToBuffer(Buffer<T>* buffer_struct, const char* filename) {
 }
 
 template <>
-TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const char* filename) {
     check_expression(buffer_struct,      POINTER_IS_NULL);
     check_expression(filename,           POINTER_IS_NULL);
     check_expression(buffer_struct != 0, FILE_READ_ERROR);
@@ -62,7 +62,7 @@ TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const char* fi
     FILE* file = fopen(filename, "r");
     warning(file, FILE_OPEN_ERROR);
 
-    fread(buffer_struct->data, sizeof(char), buffer_struct->size, file);
+    fread(buffer_struct->data, sizeof(char), (size_t)buffer_struct->size, file);
 
     fclose(file);
 
@@ -70,7 +70,7 @@ TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const char* fi
 }
 
 template <typename T>
-TYPE_OF_ERROR GetLinePointersFromFile(Buffer<T>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<T>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
@@ -81,7 +81,7 @@ TYPE_OF_ERROR GetLinePointersFromFile(Buffer<T>* buffer_struct, const char* file
 }
 
 template <>
-TYPE_OF_ERROR GetLinePointersFromFile<char*>(Buffer<char*>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR GetLinePointersFromFile<char*>(Buffer<char*>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
@@ -90,15 +90,16 @@ TYPE_OF_ERROR GetLinePointersFromFile<char*>(Buffer<char*>* buffer_struct, const
 
     buffer_struct->size = CountLines(&text, filename);
 
-    buffer_struct->data = (char**)calloc(buffer_struct->size + 1, sizeof(char*));
+    buffer_struct->data = (char**)calloc((size_t)(buffer_struct->size + 1), sizeof(char*));
     warning(buffer_struct->data, CALLOC_ERROR);
 
-    size_t index = 0;
-    buffer_struct->data[index] = text.data;
-    while(text.data[index] != EOF) {
-        if(text.data[index] == '\n')
-        buffer_struct->data[index] = &(text.data[index + 1]);
-        index++;
+    int line_index = 1;
+    buffer_struct->data[0] = text.data;
+    for(int index = 0; index < text.size; index++) {
+        if(text.data[index] == '\n') {
+            buffer_struct->data[line_index] = &(text.data[index + 1]);
+            line_index++;
+        }
     }
 
     BufferDtor<char>(&text);
@@ -107,7 +108,7 @@ TYPE_OF_ERROR GetLinePointersFromFile<char*>(Buffer<char*>* buffer_struct, const
 }
 
 template <typename T>
-size_t CountLines(Buffer<T>* buffer_struct, const char* filename) {
+inline int CountLines(Buffer<T>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
@@ -118,23 +119,22 @@ size_t CountLines(Buffer<T>* buffer_struct, const char* filename) {
 }
 
 template <>
-size_t CountLines<char>(Buffer<char>* text, const char* filename) {
+inline int CountLines<char>(Buffer<char>* text, const char* filename) {
     check_expression(text, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
 
-    size_t lines_number = 0;
-    size_t index        = 1;
-    while(text->data[index] != EOF) {
-        if(text->data[index] == '\n')
+    int lines_number = 0;
+    for(int index = 0; index < text->size; index++) {
+        if(text->data[index] == '\n') {
             lines_number++;
-        index++;
+        }
     }
 
     return lines_number;
 }
 
 template <typename T>
-TYPE_OF_ERROR BufferDtor(Buffer<T>* buffer_struct) {
+inline TYPE_OF_ERROR BufferDtor(Buffer<T>* buffer_struct) {
     check_expression(buffer_struct, POINTER_IS_NULL);
 
     color_printf(RED_COLOR, BOLD, "Please specialize type for %s | FILE: %s | LINE: %d\n",\
@@ -144,7 +144,7 @@ TYPE_OF_ERROR BufferDtor(Buffer<T>* buffer_struct) {
 }
 
 template <> //TODO move in BufferSpecializations.h
-TYPE_OF_ERROR BufferDtor<char>(Buffer<char>* buffer_struct) {
+inline TYPE_OF_ERROR BufferDtor<char>(Buffer<char>* buffer_struct) {
     check_expression(buffer_struct, POINTER_IS_NULL);
 
     buffer_struct->size = 0;
@@ -155,7 +155,7 @@ TYPE_OF_ERROR BufferDtor<char>(Buffer<char>* buffer_struct) {
 }
 
 template <>
-TYPE_OF_ERROR BufferDtor<char*>(Buffer<char*>* buffer_struct) {
+inline TYPE_OF_ERROR BufferDtor<char*>(Buffer<char*>* buffer_struct) {
     check_expression(buffer_struct, POINTER_IS_NULL);
 
     buffer_struct->size = 0;
