@@ -69,48 +69,32 @@ inline TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const c
     return SUCCESS;
 }
 
-template <typename T>
-inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<T>* buffer_struct, const char* filename) {
+inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<char*>* buffer_struct, Buffer<char>* text) {
     check_expression(buffer_struct, POINTER_IS_NULL);
-    check_expression(filename,      POINTER_IS_NULL);
+    check_expression(text,      POINTER_IS_NULL);
 
-    color_printf(RED_COLOR, BOLD, "Please specialize type for %s | FILE: %s | LINE: %d\n",\
-                __func__, __FILE__, __LINE__);
-
-    return SUCCESS;
-}
-
-template <>
-inline TYPE_OF_ERROR GetLinePointersFromFile<char*>(Buffer<char*>* buffer_struct, const char* filename) {
-    check_expression(buffer_struct, POINTER_IS_NULL);
-    check_expression(filename,      POINTER_IS_NULL);
-
-    Buffer<char> text = {};
-    ReadFile<char>(&text, filename);
-
-    buffer_struct->size = CountLines(&text, filename);
+    buffer_struct->size = CountLines(text);
 
     buffer_struct->data = (char**)calloc((size_t)(buffer_struct->size + 1), sizeof(char*));
     warning(buffer_struct->data, CALLOC_ERROR);
 
     int line_index = 1;
-    buffer_struct->data[0] = text.data;
-    for(int index = 0; index < text.size; index++) {
-        if(text.data[index] == '\n') {
-            buffer_struct->data[line_index] = &(text.data[index + 1]);
+    buffer_struct->data[0] = text->data;
+    for(int index = 0; index < text->size; index++) {
+        if(text->data[index] == '\n') {
+            buffer_struct->data[line_index] = &(text->data[index + 1]);
             line_index++;
         }
     }
 
-    BufferDtor<char>(&text);
+    printf(">%s", buffer_struct->data[0]);
 
     return SUCCESS;
 }
 
 template <typename T>
-inline int CountLines(Buffer<T>* buffer_struct, const char* filename) {
+inline int CountLines(Buffer<T>* buffer_struct) {
     check_expression(buffer_struct, POINTER_IS_NULL);
-    check_expression(filename,      POINTER_IS_NULL);
 
     color_printf(RED_COLOR, BOLD, "Please specialize type for %s | FILE: %s | LINE: %d\n",\
                 __func__, __FILE__, __LINE__);
@@ -119,9 +103,8 @@ inline int CountLines(Buffer<T>* buffer_struct, const char* filename) {
 }
 
 template <>
-inline int CountLines<char>(Buffer<char>* text, const char* filename) {
+inline int CountLines<char>(Buffer<char>* text) {
     check_expression(text, POINTER_IS_NULL);
-    check_expression(filename,      POINTER_IS_NULL);
 
     int lines_number = 0;
     for(int index = 0; index < text->size; index++) {

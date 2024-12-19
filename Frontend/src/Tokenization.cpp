@@ -1,16 +1,46 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <clocale>
 
 #include "custom_asserts.h"
 #include "Tokenization.h"
 #include "debug_macros.h"
 
-#define _line buffer->data[line_index]
+#define _line   buffer->data[line_index]
 #define _symbol string[*char_index]
 
-TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size) {
+#define _SetRedConsoleColor()     \
+    printf("\033[31m\033[1m")
+
+#define _CreateToken(value, type)\
+    CreateToken(tokens, value, string, line_index, char_index, type)
+
+#define _ScanDoubleValue()                                     \
+    sscanf(&(_symbol), "%lf%n", &number, &number_size);        \
+    _CreateToken(TokenValue {.double_value = number}, CONST);  \
+    (*char_index) += number_size;
+
+#define _SkipEnglishSymbols()                                  \
+    while(isalpha(_symbol)) {                                  \
+        (*char_index)++;                                       \
+    }                                                          \
+
+#define _SkipRussianSymbols()                                  \
+    while(IsCyrillic(&(_symbol), 1)) {                         \
+        (*char_index) += 2;                                    \
+    }
+
+static TYPE_OF_ERROR ScanLexeme          (char* string, Buffer<Token>* tokens, int* line_index, int* char_index);
+static TYPE_OF_ERROR CreateToken         (Buffer<Token>* tokens, TokenValue value, char* string, int* line_index, int* char_index, TokenType type);
+static TokenType     GetTokenType        (char* string, int* char_index                                        );
+static void          SkipSpaces          (const char* s, int* p                                                );
+static int           IsCyrillic          (const char *s, int only_rus);
+static TYPE_OF_ERROR WriteSyntaxError    (char* string, int* line_index, int* char_index                       );
+TYPE_OF_ERROR        TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size) {
     check_expression(buffer, POINTER_IS_NULL);
     check_expression(tokens, POINTER_IS_NULL);
+
+    setlocale (LC_ALL, "en_US.utf8");
 
     tokens->data = (Token*)calloc(size_t(tokens_size), sizeof(Token));
     warning(tokens, CALLOC_ERROR);
@@ -26,7 +56,7 @@ TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int t
     return SUCCESS;
 }
 
-TYPE_OF_ERROR ScanLexeme(char* string, Buffer<Token>* tokens, int* line_index, int* char_index) {
+static TYPE_OF_ERROR ScanLexeme(char* string, Buffer<Token>* tokens, int* line_index, int* char_index) {
     check_expression(string,     POINTER_IS_NULL);
     check_expression(line_index, POINTER_IS_NULL);
     check_expression(char_index, POINTER_IS_NULL);
@@ -36,48 +66,42 @@ TYPE_OF_ERROR ScanLexeme(char* string, Buffer<Token>* tokens, int* line_index, i
     int    number_size = 0;
     switch(GetTokenType(string, char_index)) {
         case CONST:
-            sscanf(&(_symbol), "%lf%n", &number, &number_size);
-            tokens->data[tokens->size].type  = CONST;
-            tokens->data[tokens->size].value.double_value = number;
-            tokens->data[tokens->size].index_in_line = *char_index;
-            tokens->data[tokens->size].line          = *line_index;
-            (*char_index) += number_size;
-            (tokens->size)++;
-            printf("CONST\n");
+            _ScanDoubleValue();
             break;
         case ENGLISH_W:
-            printf("ENGLISH_W\n");
+            _CreateToken(TokenValue {.text_pointer = &(_symbol)}, ENGLISH_W);
+            _SkipEnglishSymbols();
             break;
         case CYRILLIC_W:
-            printf("CYRILLIC_W\n");
+            _CreateToken(TokenValue {.text_pointer = &(_symbol)}, CYRILLIC_W);
+            _SkipRussianSymbols();
             break;
         case BRACKET:
-            printf("BRACKET\n");
+            _CreateToken(TokenValue {.text_pointer = &(_symbol)}, BRACKET);
+            (*char_index)++;
             break;
         case OPERATION:
-            printf("OPERATION\n");
+            _CreateToken(TokenValue {.text_pointer = &(_symbol)}, OPERATION);
+            (*char_index)++;
             break;
         case SEPARATOR:
-            printf("SEPARATOR\n");
+            _CreateToken(TokenValue {.text_pointer = &(_symbol)}, SEPARATOR);
+            (*char_index)++;
             break;
         case NEW_LINE:
-            printf("NEW_LINE\n");
             (*char_index)++;
             break;
         case UNDEFINED:
-            printf("UNDEFINED\n");
-            break;
         default:
-            printf("default\n");
-            break;
-            // color_printf(RED_COLOR, BOLD, "Undefined Symbol at %d:\n", *line_index);
-            // WriteSyntaxError(string, line_index, char_index);
+            color_printf(RED_COLOR, BOLD, "Undefined Symbol at %d:\n", (*line_index + 1));
+            WriteSyntaxError(string, line_index, char_index);
+            exit(0);
     }
 
     return SUCCESS;
 }
 
-TokenType GetTokenType(char* string, int* char_index) {
+static TokenType GetTokenType(char* string, int* char_index) {
     warning(string,     POINTER_IS_NULL);
     warning(char_index, POINTER_IS_NULL);
 
@@ -87,11 +111,12 @@ TokenType GetTokenType(char* string, int* char_index) {
     if(isalpha(_symbol)) {
         return ENGLISH_W;
     }
-    if(false) { //TODO
+    if(IsCyrillic(&(_symbol), 1)) {
         return CYRILLIC_W;
     }
     if(_symbol == '{' || _symbol == '}' || _symbol == '[' ||
-       _symbol == ']' || _symbol == '(' || _symbol == ')' ) {
+       _symbol == ']' || _symbol == '(' || _symbol == ')' ||
+       _symbol == '\''|| _symbol == '\"'|| _symbol == '\\' ) {
         return BRACKET;
     }
     if(_symbol == '+' || _symbol == '-' || _symbol == '*' ||
@@ -109,69 +134,71 @@ TokenType GetTokenType(char* string, int* char_index) {
     return UNDEFINED;
 }
 
-TYPE_OF_ERROR WriteSyntaxError(char* string, int* line_index, int* char_index) {
+
+static int IsCyrillic(const char *s, int only_rus)
+{
+  if ((*s & 0xe0) != 0xc0)
+    return 0;
+  if ((s[1] & 0xc0) != 0x80)
+    return 0;
+  uint32_t uc = ((s[0] & 0x1f) << 6) | (s[1] & 0x3f); // 5 bits `s[0]` and 6 bits `s[1]`
+
+  if (uc < 0x400 || uc > 0x4ff)
+    return 0; // not cyrillic
+  if (only_rus)
+    if ((uc < 0x410 || uc > 0x44f) && // А - Я; а - я
+        !(uc == 0x401 || // Ё
+          uc == 0x451)) // ё
+      return 0;
+
+  return uc;
+}
+
+static TYPE_OF_ERROR WriteSyntaxError(char* string, int* line_index, int* char_index) {
     check_expression(string,     POINTER_IS_NULL);
     check_expression(line_index, POINTER_IS_NULL);
     check_expression(char_index, POINTER_IS_NULL);
 
-    color_printf(RED_COLOR, BOLD, "%d: %*.*s\n", *line_index, 2, 2, string);
+    _SetRedConsoleColor();
+    PrintLine(string);
     for(int space_number = 0; space_number < *char_index; space_number++) {
         printf(" ");
     }
-    color_printf(RED_COLOR, BOLD, "^");
+    color_printf(RED_COLOR, BOLD, "^\n");
 
     return SUCCESS;
 }
 
-// TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, size_t tokens_size) {
-//     check_expression(buffer, POINTER_IS_NULL);
-//
-//     tokens->data = (Token*)calloc(tokens_size, sizeof(Token));
-//     warning(tokens, CALLOC_ERROR);
-//
-//     char** text = buffer->data;
-//     size_t token_index     = 0;
-//     size_t double_size     = 0;
-//     size_t char_index      = 0;
-//     double number          = 0;
-//     size_t start_of_lexeme = 0;
-//     // $DEBUG("%d", buffer->size);
-//
-//     for(size_t line_index = 0; line_index < buffer->size; line_index++) {
-//         char_index = 0;
-//         while(text[line_index][char_index] != '\n') {
-//             if(IsAlpha(text[line_index][char_index])) {
-//                 start_of_lexeme = char_index;
-//                 while(isalpha(text[line_index][char_index])) {
-//                     char_index++;
-//                 }
-//                 tokens->data[token_index].text_pointer = &(text[line_index][start_of_lexeme]);
-//                 tokens->data[token_index].type         = WORD;
-//                 tokens->size++;
-//                 token_index++;
-//             }
-//             else if(isdigit(text[line_index][char_index])) {
-//                 sscanf(&(text[line_index][char_index]), "%lf%n", &number, &double_size);
-//                 tokens->data[token_index].text_pointer = &(text[line_index][char_index]);
-//                 tokens->data[token_index].type         = NUMBER;
-//                 tokens->size++;
-//                 token_index++;
-//                 char_index += double_size;
-//             }
-//             else if (text[line_index][char_index] != ' '){
-//                 tokens->data[token_index].text_pointer = &(text[line_index][char_index]);
-//                 tokens->data[token_index].type         = OPERATION;
-//                 tokens->size++;
-//                 token_index++;
-//                 char_index++;
-//             }
-//             else
-//                 char_index++;
-//         }
-//     }
-//
-//     return SUCCESS;
-// }
+static TYPE_OF_ERROR CreateToken(Buffer<Token>* tokens, TokenValue value, char* string, int* line_index, int* char_index, TokenType type) {
+    check_expression(string,     POINTER_IS_NULL);
+    check_expression(line_index, POINTER_IS_NULL);
+    check_expression(char_index, POINTER_IS_NULL);
+
+    tokens->data[tokens->size].type  = type;
+
+    if(type == CONST) {
+        tokens->data[tokens->size].value.double_value = value.double_value;
+    }
+    else {
+        tokens->data[tokens->size].value.text_pointer = value.text_pointer;
+    }
+
+    tokens->data[tokens->size].index_in_line = *char_index;
+    tokens->data[tokens->size].line          = *line_index;
+
+    (tokens->size)++;
+
+    return SUCCESS;
+}
+
+void PrintLine(char* string) {
+    int printed_index = 0;
+    while(string[printed_index] != '\n') {
+        putchar(string[printed_index]);
+        printed_index++;
+    }
+    putchar('\n');
+}
 
 void SkipSpaces(const char* s, int* p) {
     while(s[*p] == ' ') {

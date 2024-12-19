@@ -1,0 +1,1 @@
+[] If there isn't '\n' after last line buffer/Tokenization doesn't scan it

@@ -26,11 +26,6 @@ struct Token {
     int        index_in_line = 0;
 };
 
-bool IsAlpha(char symbol);
-TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size);
-TYPE_OF_ERROR ScanLexeme    (char* string, Buffer<Token>* tokens, int* line_index, int* char_index);
-TokenType     GetTokenType  (char* string, int* char_index);
-TYPE_OF_ERROR WriteSyntaxError(char* string, int* line_index, int* char_index);
-void          SkipSpaces    (const char* s, int* p);
-
+TYPE_OF_ERROR TokenizeBuffer  (Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size);
+void          PrintLine       (char* string);
 #endif
