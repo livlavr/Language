@@ -1,18 +1,18 @@
 CXX           = gcc-14
 
-SRC           = main.cpp ____
-SUBMODULE_SRC =
-B_SUBMODULES  = Color-printf/color_printf.cpp Stack/src/recalloc.cpp Stack/src/stack_public.cpp \
-				Stack/src/stack_security.cpp Stack/src/stack.cpp Stack/src/stack_dump.cpp
+FRONT_SRC     = main.cpp Tokenization.cpp
+SUBMODULE_SRC = Color-printf/color_printf.cpp
 
 FRONT_DIR     = ./Frontend
 BUILD_DIR     = /build/
 SRC_DIR       = /src/
-LIBS          = -I libs -I libs/Custom-asserts -I libs/Color-printf -I libs/Binary-tree/inc -I libs/Debug-macros -I libs/Buffer
+INC_DIR       = /inc/
 
-FRONTEND        = Frontend
+CFLAGS          = -I libs/Custom-asserts -I libs/Color-printf -I libs/Binary-tree/inc -I libs/Debug-macros -I libs/Buffer
+
+
+FRONTEND        = frontend
 OBJECT        = $(patsubst %.cpp, %.o, $(SRC))
-BUILD_OBJ     = $(addprefix $(BUILD_DIR), $(OBJECT))
 
 GREEN_COLOR    = \033[1;32m
 YELLOW_COLOR   = \033[1;33m
@@ -33,7 +33,7 @@ DED_FLAGS     = -D _DEBUG -ggdb2 -std=c++17 -O0 -Wall -Wextra -Weffc++          
 				-fstack-protector -fstrict-overflow -flto-odr-type-merging -fno-omit-frame-pointer        \
 				-Wlarger-than=8192 -Wstack-usage=8192 -pie -fPIE -Werror=vla
 
-.PHONY : clean all
+.PHONY : clean all frontend
 
 # all : $(addprefix $(SRC_DIR), $(SRC))
 # 	clear
@@ -48,10 +48,22 @@ DED_FLAGS     = -D _DEBUG -ggdb2 -std=c++17 -O0 -Wall -Wextra -Weffc++          
 # 	@printf "$(GREEN_COLOR)$(TARGET) COMPILED$(DEFAULT_COLOR)\n"
 # 	$(addprefix $(BUILD_DIR), $(TARGET))
 
-frontend : $(addprefix $(FRONT_DIR)$(SRC_DIR), $(SRC))
+frontend : $(addprefix $(FRONT_DIR)$(SRC_DIR), $(FRONT_SRC))
 	clear
 	@mkdir -p $(FRONT_DIR)/build
-	$(CXX) $(LIBS) $^ $(SUBMODULE_SRC) -o $(addprefix $(FRONT_DIR)$(BUILD_DIR), $(FRONTEND))
+	@$(CXX) -I $(FRONT_DIR)/inc $(CFLAGS) $(addprefix ./, $^) $(addprefix ./libs/, $(SUBMODULE_SRC)) -o $(addprefix $(FRONT_DIR)$(BUILD_DIR), $(FRONTEND))
+	@printf "$(GREEN_COLOR)$(FRONTEND) COMPILED$(DEFAULT_COLOR)\n"
+
+frontend_run : $(addprefix $(FRONT_DIR)$(SRC_DIR), $(FRONT_SRC))
+	clear
+	@mkdir -p $(FRONT_DIR)/build
+	@$(CXX) -I $(FRONT_DIR)/inc $(CFLAGS) $(DED_FLAGS) $(addprefix ./, $^) $(addprefix ./libs/, $(SUBMODULE_SRC)) -o $(addprefix $(FRONT_DIR)$(BUILD_DIR), $(FRONTEND))
+	@./Frontend/build/frontend
+	@printf "$(GREEN_COLOR)$(FRONTEND) COMPILED$(DEFAULT_COLOR)\n"
+
+frontend_clean :
+	@rm -f -r $(addprefix $(FRONT_DIR)$(BUILD_DIR), *.o) $(FRONT_DIR)/*.dSYM
+	@printf  "$(YELLOW_COLOR)$(FRONTEND) CLEANED$(DEFAULT_COLOR)\n"
 
 clean :
 	@rm -f -r $(addprefix $(BUILD_DIR), *.o) *.dSYM

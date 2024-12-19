@@ -4,6 +4,8 @@
 #include "color_printf.h"
 #include "custom_asserts.h"
 
+static const int OK = 1;
+
 void style_selector(MY_COLOR color, FORMAT font)
 {
     switch(font)
@@ -45,7 +47,7 @@ void style_selector(MY_COLOR color, FORMAT font)
             printf("\033[0m");
             break;
         default:
-            warning(false, "COLOR SELECTOR ERROR" && !OKEY);
+            warning(false, "COLOR SELECTOR ERROR"&&!OK);
     }
 }
 
