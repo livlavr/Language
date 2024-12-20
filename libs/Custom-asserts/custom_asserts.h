@@ -17,7 +17,6 @@ enum TYPE_OF_ERROR
     VALUE_ERROR     = 7,
     INPUT_ERROR     = 8,
     PROGRAM_ERROR   = 9,
-    OKEY            = 10
 };
 
 #define warning(condition, message) do                                                     \

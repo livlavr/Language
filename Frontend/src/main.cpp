@@ -28,6 +28,7 @@ int main() {
         }
         else {
             PrintLine(tokens.data[i].value.text_pointer);
+            printf("< %d >", tokens.data[i].type);
         }
     }
 

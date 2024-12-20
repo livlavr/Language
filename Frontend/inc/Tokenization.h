@@ -11,7 +11,6 @@ enum TokenType {
     BRACKET    = 1 << 3,
     SEPARATOR  = 1 << 4,
     UNDEFINED  = 1 << 5,
-    NEW_LINE   = 1 << 6,
 };
 
 union TokenValue {
@@ -20,12 +19,13 @@ union TokenValue {
 };
 
 struct Token {
-    TokenValue value;
+    TokenValue value = {.text_pointer = NULL};
     TokenType  type;
     int        line          = 0;
     int        index_in_line = 0;
 };
 
-TYPE_OF_ERROR TokenizeBuffer  (Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size);
-void          PrintLine       (char* string);
+TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size);
+TYPE_OF_ERROR PrintLine     (char* string);
+
 #endif

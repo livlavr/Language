@@ -29,7 +29,7 @@ inline TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
 }
 
 inline TYPE_OF_ERROR GetSizeOfBuffer(int* size, const char* filename) {
-    check_expression(size, POINTER_IS_NULL);
+    check_expression(size,     POINTER_IS_NULL);
     check_expression(filename, POINTER_IS_NULL);
 
     struct stat buffer_information = {};
@@ -71,7 +71,7 @@ inline TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const c
 
 inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<char*>* buffer_struct, Buffer<char>* text) {
     check_expression(buffer_struct, POINTER_IS_NULL);
-    check_expression(text,      POINTER_IS_NULL);
+    check_expression(text,          POINTER_IS_NULL);
 
     buffer_struct->size = CountLines(text);
 
