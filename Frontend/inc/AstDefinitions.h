@@ -57,7 +57,7 @@ enum Operations {
     OUT        = 62,
     RETURN     = 71,
     BREAK      = 72,
-    CONTINUE   = 73,//TODO change
+    CONTINUE   = 73,
     ABORT      = 74,
 };
 

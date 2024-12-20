@@ -2,7 +2,7 @@
 #define DIFF_DUMP_SPECIALIZATIONS_H_
 
 #include "tree.h"
-#include "diff_definitions.h"
+#include "AstDefinitions.h"
 
 #define _WriteOperationDescriptionToStream()                                                                                                          \
     fprintf(dot_file, "P%p [style = \"filled, rounded\", fillcolor=\"yellow:magenta\" gradientangle=270,"                                              \
@@ -21,7 +21,7 @@
            node, node, node->parent, node->value.data.double_value)                                                              \
 
 template <>
-inline TYPE_OF_ERROR ProcessNode<DifferentiatorValue>(TreeNode<DifferentiatorValue>* node, FILE* dot_file) {
+inline TYPE_OF_ERROR ProcessNode<AstNode>(TreeNode<AstNode>* node, FILE* dot_file) {
     check_expression(dot_file,  POINTER_IS_NULL);
     check_expression(node,      POINTER_IS_NULL);
 
@@ -42,5 +42,16 @@ inline TYPE_OF_ERROR ProcessNode<DifferentiatorValue>(TreeNode<DifferentiatorVal
 
     return SUCCESS;
 }
+
+CONST      = 0,
+CYRILLIC_W = 1,
+ENGLISH_W  = 1 << 1,
+OPERATION  = 1 << 2,
+BRACKET    = 1 << 3,
+SEPARATOR  = 1 << 4,
+OPERATOR   = 1 << 5,
+TYPE_NAME  = 1 << 6,
+KEYWORD    = 1 << 7,
+UNDEFINED  = 1 << 8,
 
 #endif

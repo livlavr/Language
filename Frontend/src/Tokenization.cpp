@@ -41,12 +41,13 @@ static const int NOT_KEYWORD = 0;
         }                                                      \
     }
 
-static TYPE_OF_ERROR ScanLexeme          (char* string, Buffer<Token>* tokens, int* line_index, int* char_index);
-static TYPE_OF_ERROR CreateToken         (Buffer<Token>* tokens, TokenValue value, int* line_index, int* char_index, TokenType type);
-static TYPE_OF_ERROR SkipSpaces          (const char* s, int* p                                                );
-static uint32_t      IsCyrillic          (const char *s                                                        );
-static TYPE_OF_ERROR WriteSyntaxError    (char* string, int* line_index, int* char_index                       );
-static int           AddKeywordToken     (const char* string, Buffer<Token>* tokens, int* line_index, int* char_index);
+static TYPE_OF_ERROR ScanLexeme       (char* string, Buffer<Token>* tokens, int* line_index, int* char_index           );
+static TYPE_OF_ERROR CreateToken      (Buffer<Token>* tokens, TokenValue value, int* line_index, int* char_index, TokenType type);
+static TYPE_OF_ERROR SkipSpaces       (const char* s, int* p                                                           );
+static uint32_t      IsCyrillic       (const char *s                                                                   );
+static TYPE_OF_ERROR WriteSyntaxError (char* string, int* char_index                                                   );
+static int           AddKeywordToken  (const char* string, Buffer<Token>* tokens, int* line_index, int* char_index     );
+static TYPE_OF_ERROR CountCyrillicSymbolsInLine(const char* string, int* number_of_cyrillic_symbols, int index_of_error);
 
 TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size) {
     check_expression(buffer, POINTER_IS_NULL);
@@ -94,7 +95,7 @@ static TYPE_OF_ERROR ScanLexeme(char* string, Buffer<Token>* tokens, int* line_i
     }
     else {
         color_printf(RED_COLOR, BOLD, "Undefined Symbol at %d:\n", (*line_index + 1));
-        WriteSyntaxError(string, line_index, char_index);
+        WriteSyntaxError(string, char_index);
         exit(0);
     }
 
@@ -117,16 +118,31 @@ static uint32_t IsCyrillic(const char *string) //Magic numbers from UTF8 codes
     return uc;
 }
 
-static TYPE_OF_ERROR WriteSyntaxError(char* string, int* line_index, int* char_index) {
+static TYPE_OF_ERROR WriteSyntaxError(char* string, int* char_index) {
     check_expression(string,     POINTER_IS_NULL);
-    check_expression(line_index, POINTER_IS_NULL);
     check_expression(char_index, POINTER_IS_NULL);
 
+    int number_of_cyrillic_symbols = 0;
+    CountCyrillicSymbolsInLine(string, &number_of_cyrillic_symbols, *char_index);
     PrintLine(string, *char_index);
-    for(int space_number = 0; space_number < *char_index; space_number++) {
+    for(int space_number = 0; space_number < *char_index - number_of_cyrillic_symbols; space_number++) {
         printf(" ");
     }
     color_printf(RED_COLOR, BOLD, "^\n");
+
+    return SUCCESS;
+}
+
+static TYPE_OF_ERROR CountCyrillicSymbolsInLine(const char* string, int* number_of_cyrillic_symbols, int index_of_error) {
+    check_expression(string, POINTER_IS_NULL);
+
+    int index = 0;
+    while(string[index] != '\n' && index <= index_of_error) {
+        if(IsCyrillic(&(string[index]))) {
+            (*number_of_cyrillic_symbols)++;
+        }
+        index++;
+    }
 
     return SUCCESS;
 }
