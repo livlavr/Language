@@ -24,11 +24,16 @@ int main() {
     $DEBUG("%d", tokens.size);
     for(int i = 0; i < tokens.size; i++) {
         if(tokens.data[i].type == CONST) {
+            printf("< %d >", tokens.data[i].type);
             printf("%lf\n", tokens.data[i].value.double_value);
         }
-        else {
-            PrintLine(tokens.data[i].value.text_pointer);
+        else if(tokens.data[i].type == CYRILLIC_W || tokens.data[i].type == ENGLISH_W) {
             printf("< %d >", tokens.data[i].type);
+            PrintLine(tokens.data[i].value.text_pointer, -1);
+        }
+        else {
+            printf("< %d >", tokens.data[i].type);
+            printf("%d\n", tokens.data[i].value.keyword_index);
         }
     }
 

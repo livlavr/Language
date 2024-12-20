@@ -10,22 +10,26 @@ enum TokenType {
     OPERATION  = 1 << 2,
     BRACKET    = 1 << 3,
     SEPARATOR  = 1 << 4,
-    UNDEFINED  = 1 << 5,
+    OPERATOR   = 1 << 5,
+    TYPE_NAME  = 1 << 6,
+    KEYWORD    = 1 << 7,
+    UNDEFINED  = 1 << 8,
 };
 
 union TokenValue {
     double double_value;
     char*  text_pointer;
+    int    keyword_index;
 };
 
 struct Token {
     TokenValue value = {.text_pointer = NULL};
-    TokenType  type;
-    int        line          = 0;
-    int        index_in_line = 0;
+    TokenType  type  = UNDEFINED;
+    int        line          = -1;
+    int        index_in_line = -1;
 };
 
 TYPE_OF_ERROR TokenizeBuffer(Buffer<char*>* buffer, Buffer<Token>* tokens, int tokens_size);
-TYPE_OF_ERROR PrintLine     (char* string);
+TYPE_OF_ERROR PrintLine     (char* string, int char_index);
 
 #endif
