@@ -23,8 +23,8 @@ static const int NOT_KEYWORD = 0;
     CreateToken(tokens, value, line_index, char_index, type)
 
 #define _AddConstToken()                                       \
-    sscanf(&(_symbol), "%lf%n", &number, &number_size);        \
-    _CreateToken(TokenValue {.double_value = number}, CONST);  \
+    sscanf(&(_symbol), "%d%n", &number, &number_size);         \
+    _CreateToken(TokenValue {.int_value = number}, CONST);     \
     (*char_index) += number_size;
 
 #define _SkipEnglishSymbols()                                  \
@@ -78,7 +78,7 @@ static TYPE_OF_ERROR ScanLexeme(char* string, Buffer<Token>* tokens, int* line_i
     check_expression(char_index, POINTER_IS_NULL);
 
     SkipSpaces(string, char_index);
-    double number      = 0;
+    int    number      = 0;
     int    number_size = 0;
 
     if(isdigit(_symbol)) {
@@ -155,7 +155,7 @@ static TYPE_OF_ERROR CreateToken(Buffer<Token>* tokens, TokenValue value, int* l
     tokens->data[tokens->size].type  = type;
 
     if(type == CONST) {
-        tokens->data[tokens->size].value.double_value = value.double_value;
+        tokens->data[tokens->size].value.int_value = value.int_value;
     }
     else {
         tokens->data[tokens->size].value.text_pointer = value.text_pointer;
@@ -180,6 +180,8 @@ static int AddKeywordToken(const char* string, Buffer<Token>* tokens, int* line_
         }
 
     #include "Keywords.def"
+
+    #undef KEYWORD
 
     return NOT_KEYWORD;
 }

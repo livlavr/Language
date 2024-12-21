@@ -11,6 +11,18 @@
 #include "debug_macros.h"
 
 template <typename T>
+inline TYPE_OF_ERROR BufferInit(Buffer<T>* buffer_struct, int capacity) {
+    check_expression(buffer_struct, POINTER_IS_NULL);
+
+    buffer_struct->data = (T*)calloc(capacity, sizeof(T));
+    warning(buffer_struct->data, POINTER_IS_NULL);
+
+    buffer_struct->capacity = capacity;
+
+    return SUCCESS;
+}
+
+template <typename T>
 inline TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(filename,      POINTER_IS_NULL);
@@ -18,17 +30,20 @@ inline TYPE_OF_ERROR ReadFile(Buffer<T>* buffer_struct, const char* filename) {
     FILE* file = fopen(filename, "r");
     warning(file, POINTER_IS_NULL);
 
-    GetSizeOfBuffer(&(buffer_struct->size), filename);
+    GetSizeOfFile(&(buffer_struct->capacity), filename);
 
-    buffer_struct->data = (T*)calloc(size_t(buffer_struct->size + 1), sizeof(T));
+    buffer_struct->data = (T*)calloc(size_t(buffer_struct->capacity + 1), sizeof(T));
+
     warning(buffer_struct->data, CALLOC_ERROR);
 
     ScanFileToBuffer<T>(buffer_struct, filename);
 
+    buffer_struct->size = buffer_struct->capacity;
+
     return SUCCESS;
 }
 
-inline TYPE_OF_ERROR GetSizeOfBuffer(int* size, const char* filename) {
+inline TYPE_OF_ERROR GetSizeOfFile(int* size, const char* filename) {
     check_expression(size,     POINTER_IS_NULL);
     check_expression(filename, POINTER_IS_NULL);
 
@@ -62,7 +77,7 @@ inline TYPE_OF_ERROR ScanFileToBuffer<char>(Buffer<char>* buffer_struct, const c
     FILE* file = fopen(filename, "r");
     warning(file, FILE_OPEN_ERROR);
 
-    fread(buffer_struct->data, sizeof(char), (size_t)buffer_struct->size, file);
+    fread(buffer_struct->data, sizeof(char), (size_t)buffer_struct->capacity, file);
 
     fclose(file);
 
@@ -73,24 +88,27 @@ inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<char*>* buffer_struct, Buffe
     check_expression(buffer_struct, POINTER_IS_NULL);
     check_expression(text,          POINTER_IS_NULL);
 
-    buffer_struct->size = CountLines(text);
+    buffer_struct->capacity = CountLines(text);
 
-    buffer_struct->data = (char**)calloc((size_t)(buffer_struct->size + 1), sizeof(char*));
+    buffer_struct->data = (char**)calloc((size_t)(buffer_struct->capacity + 1), sizeof(char*));
     warning(buffer_struct->data, CALLOC_ERROR);
 
     int line_index = 1;
     buffer_struct->data[0] = text->data;
-    for(int index = 0; index < text->size; index++) {
+    for(int index = 0; index < text->capacity; index++) {
         if(text->data[index] == '\n') {
             buffer_struct->data[line_index] = &(text->data[index + 1]);
+            (buffer_struct->size)++;
             line_index++;
         }
     }
 
-    printf(">%s", buffer_struct->data[0]);
+    printf(">%s", buffer_struct->data[0]);//TODO
 
     return SUCCESS;
 }
+
+
 
 template <typename T>
 inline int CountLines(Buffer<T>* buffer_struct) {
@@ -107,13 +125,37 @@ inline int CountLines<char>(Buffer<char>* text) {
     check_expression(text, POINTER_IS_NULL);
 
     int lines_number = 0;
-    for(int index = 0; index < text->size; index++) {
+    for(int index = 0; index < text->capacity; index++) {
         if(text->data[index] == '\n') {
             lines_number++;
         }
     }
 
     return lines_number;
+}
+
+template <typename T>
+inline TYPE_OF_ERROR PushToBuffer(Buffer<T>* buffer_struct, T* element_to_push) {
+    check_expression(buffer_struct, POINTER_IS_NULL);
+
+    if(buffer_struct->size == buffer_struct->capacity) {
+        EnlargeBufferCapacity(buffer_struct);
+    }
+
+    buffer_struct->data[buffer_struct->size] = *element_to_push;
+    (buffer_struct->size)++;
+
+    return SUCCESS;
+}
+
+template <typename T>
+inline TYPE_OF_ERROR EnlargeBufferCapacity(Buffer<T>* buffer_struct) {
+    warning(buffer_struct, POINTER_IS_NULL);
+
+    buffer_struct->data = (T*)realloc(sizeof(T)*(buffer_struct->capacity)*2);
+    buffer_struct->capacity *= 2;
+
+    return SUCCESS;
 }
 
 template <typename T>

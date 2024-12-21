@@ -13,7 +13,7 @@
 #define _WriteConstDescriptionToStream()                                                                 \
     fprintf(dot_file, "P%p [style = \"filled, rounded\", fillcolor=\"peachpuff:red\" gradientangle=270," \
           "label=\" {Node = [ %p ] | Parent = [ %p ] | %.3lf }\" ];\n",                                  \
-           node, node, node->parent, node->value.data.double_value)
+           node, node, node->parent, node->value.data.int_value)
 
 template <>
 inline TYPE_OF_ERROR ProcessNode<AstNode>(TreeNode<AstNode>* node, FILE* dot_file) {

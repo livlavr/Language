@@ -10,7 +10,7 @@ int main() {
     Buffer<char>   code   = {};
     Buffer<char*>  lines  = {};
     Buffer<Token> tokens  = {};
-    ReadFile(&code, "Code-examples/test.txt");
+    ReadFile(&code, "tests/test.txt");
     // $DEBUG("%d", code.size);
     GetLinePointersFromFile(&lines, &code);
 
@@ -21,13 +21,13 @@ int main() {
     //     printf(">%s\n", lines.data[i]);
     // }
 
-    TokenizeBuffer(&lines, &tokens, code.size);
+    TokenizeBuffer(&lines, &tokens, code.capacity);
 
     $DEBUG("%d", tokens.size);
     for(int i = 0; i < tokens.size; i++) {
         if(tokens.data[i].type == CONST) {
             printf("< %d >", tokens.data[i].type);
-            printf("%lf\n", tokens.data[i].value.double_value);
+            printf("%d\n", tokens.data[i].value.int_value);
         }
         else if(tokens.data[i].type == CYRILLIC_W || tokens.data[i].type == ENGLISH_W) {
             printf("< %d >", tokens.data[i].type);

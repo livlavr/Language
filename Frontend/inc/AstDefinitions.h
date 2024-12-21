@@ -28,69 +28,47 @@ struct AstNode {
 };
 */
 
-enum Operations {
-    UNDEF      = -1,
-    IF         = 11,
-    WHILE      = 12,
-    ASSIGN     = 13,
-    SIN        = 21,
-    COS        = 22,
-    FLOOR      = 23,
-    ADD        = 24,
-    SUB        = 25,
-    MUL        = 26,
-    DIV        = 27,
-    SQRT       = 28,
-    EQUAL      = 31,
-    LESS       = 32,
-    MORE       = 33,
-    LEQ        = 34,
-    GEQ        = 35,
-    NOT_EQUAL  = 36,
-    AND        = 37,
-    OR         = 38,
-    NOT        = 39,
-    SEP        = 41,
-    PARAMETERS = 42,
-    CONST      = 51,
-    IN         = 61,
-    OUT        = 62,
-    RETURN     = 71,
-    BREAK      = 72,
-    CONTINUE   = 73,
-    ABORT      = 74,
+enum class KeywordType {
+    UNDEFINED = 0,
+
+    #define KEYWORD(NAME, NUMBER, TEXT_RECORD, TYPE, ...) NAME = NUMBER,
+
+    #include "Keywords.def"
+
+    #undef KEYWORD
 };
 
-enum AstNodeType{
-    KEYWORD             = 0,
+
+enum class AstNodeType{
     CONSTANT            = 1,
-    IDENTIFIER          = 1 << 1,
-    PARAMETERS          = 1 << 2,
-    FUNCTION_CALL       = 1 << 3,
-    VAR_DECLARATION     = 1 << 4,
-    FUNCTION_DEFINITION = 1 << 5,
+    IDENTIFIER          = 2,
+    KEYWORD             = 3,
+    FUNCTION_DEFINITION = 4,
+    PARAMETERS          = 5,
+    VAR_DECLARATION     = 6,
+    FUNCTION_CALL       = 7,
 };
 
 union AstNodeValue{
-    double double_value;
-    int    identifier;
+    int int_value;
+    int id;
 };
 
 struct AstNode {
     AstNodeType  type;
-    AstNodeValue data = {.double_value = 0};
+    AstNodeValue data = {.int_value = 0};
     int          scope = -1;
 };
 
 TreeNode<AstNode>* CreateAstNode(AstNode ast_value,
     TreeNode<AstNode>* left, TreeNode<AstNode>* right);
 
-#define Keyword(scope, id, left, right)        CreateAstNode({.type = KEYWORD,    .data = {.number = id},           .scope = scope}, left, right)
-#define Constant(scope, number)                CreateAstNode({.type = CONSTANT,   .data = {.double_value = number}, .scope = scope}, NULL, NULL)
-#define Identifier(scope, id)                  CreateAstNode({.type = IDENTIFIER, .data = {.number = id},           .scope = scope}, NULL, NULL)
-#define Parameters(scope, left, right)         Keyword(scope, PARAMETERS, left, right)
-#define FunctionCall(scope, left, right)       Keyword(scope, FUNCTION_CALL, left, right)
-#define VarDeclaration(scope, left, right)     Keyword(scope, VAR_DECLARATION, left, right)
-#define FunctionDefinition(scope, left, right) Keyword(scope, FUNCTION_DEFINITION, left, right)
+#define Keyword(keyword_id, left, right)                                           CreateAstNode({.type = AstNodeType::KEYWORD,             .data = {.id = keyword_id   }, .scope = context->current_scope}, left,          right                    )
+#define Constant(number)                                                           CreateAstNode({.type = AstNodeType::CONSTANT,            .data = {.int_value = number}, .scope = context->current_scope}, NULL,          NULL                     )
+#define Identifier(identifier_id)                                                  CreateAstNode({.type = AstNodeType::IDENTIFIER,          .data = {.id = identifier_id}, .scope = context->current_scope}, NULL,          NULL                     )
+#define Parameters(GetParameters, function_body)                                   CreateAstNode({.type = AstNodeType::PARAMETERS,          .data = {.id = -1           }, .scope = context->current_scope}, GetParameters, function_body            )
+#define FunctionCall(GetArgs, identifier_id)                                       CreateAstNode({.type = AstNodeType::FUNCTION_CALL,       .data = {.id = -1           }, .scope = context->current_scope}, GetArgs,       Identifier(identifier_id))
+#define VariableDeclaration(identifier_id, type_name, identifier_or_GetExpression) CreateAstNode({.type = AstNodeType::VAR_DECLARATION,     .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     identifier_or_expression )
+#define FunctionDefinition(identifier_id, type_name, GetParameters)                CreateAstNode({.type = AstNodeType::FUNCTION_DEFINITION, .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     GetParameters            )
 
 #endif

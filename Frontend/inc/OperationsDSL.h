@@ -2,8 +2,8 @@
 #define OPERATIONS_DSL_H_
 
 //TODO scope
-#define  Num(amount     ) CreateAstNode({.type = CONSTANT,    .data = {.double_value   = amount   }}, NULL, NULL )
-#define  Var(var_index  ) CreateAstNode({.type = IDENTIFIER , .data = {.identifier     = var_index}}, NULL, NULL )
+#define  Num(amount     ) CreateAstNode({.type = CONSTANT,   .data = {.int_value       = amount   }}, NULL, NULL )
+#define  Var(var_id     ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = var_id   }}, NULL, NULL )
 #define  Add(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = ADD      }}, left, right)
 #define  Sub(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = SUB      }}, left, right)
 #define  Mul(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = MUL      }}, left, right)

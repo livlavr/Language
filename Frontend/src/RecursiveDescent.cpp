@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <string.h>
 // #define NDEBUG
 
 #include "tree.h"
@@ -9,212 +9,178 @@
 #include "OperationsDSL.h"
 #include "debug_macros.h"
 
-TreeNode<AstNode>* GetEquation(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    TreeNode<AstNode>* val = GetPlusMinus(s, p);
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    if(s[*p].data->value.text_pointer[0] != '\0' && s[*p].data->value.text_pointer[0] != '\n')
-        SyntaxError(__LINE__);
-    return val;
+enum Errors {
+    NO_ERRORS = 0;
+};
+
+struct Identifier {
+    char* name = NULL;
+    int   id   = -1;
+};
+
+struct Context {
+    Buffer<Token>*      tokens        = NULL;
+    Buffer<Identifier>* name_table    = NULL;
+    int                 current_token = 0;
+    Errors              error         = NO_ERRORS;
+    int                 current_scope = -1;
+};
+
+#define _current_token   context->current_token
+#define _tokens          context->tokens
+#define _current_name_id context->name_table->size
+#define _current_symbol  _tokens[_current_token].data->value.text_pointer[0]
+
+TYPE_OF_ERROR CreateAstTree(Context* context, Tree<AstNode>* tree) {
+    check_expression(context, POINTER_IS_NULL);
+    check_expression(tree, POINTER_IS_NULL);
+
+    BufferInit(context->name_table, 5);
+    tree->root = GetGrammar(context);
+
+    return SUCCESS;
 }
 
-TreeNode<AstNode>* GetPlusMinus(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    TreeNode<AstNode>* val1   = GetMulDiv(s, p);
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    TreeNode<AstNode>* result = val1;
-    TreeNode<AstNode>* val2   = NULL;
+TreeNode<AstNode>* GetGrammar(Context* context) {
+    check_expression(context, NULL);
 
-    while (s[*p].data->value.text_pointer[0] == '+' || s[*p].data->value.text_pointer[0] == '-') {
-        int op = s[*p].data->value.text_pointer[0];
-        (*p)++;
-        val2 = GetPlusMinus(s, p);
-        $DEBUG("%s", __func__);
-        $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-        if(op == '+') result = Add(val1, val2);
-        else          result = Sub(val1, val2);
+    TreeNode<AstNode>* node = NULL;
+    if(context->current_token + 1 != context->tokens->size) {
+        node = Keyword(SEPARATOR, GetStatement(context), GetGrammar(context));
     }
 
-    return result;
+    return node;
 }
 
-TreeNode<AstNode>* GetMulDiv(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    TreeNode<AstNode>* val1   = GetBracket(s, p);
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    TreeNode<AstNode>* result = val1;
-    TreeNode<AstNode>* val2   = NULL;
+TreeNode<AstNode>* GetStatement(Context* context) {
+    check_expression(context, NULL);
 
-    while (s[*p].data->value.text_pointer[0] == '*' || s[*p].data->value.text_pointer[0] == '/') {
-        int op = s[*p].data->value.text_pointer[0];
-        (*p)++;
-        val2  = GetMulDiv(s, p);
-        $DEBUG("%s", __func__);
-        $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-        if(op == '*') result = Mul(val1, val2);
-        else          result = Div(val1, val2);
+    TreeNode<AstNode>* node = NULL;
+
+    if(node = GetFunctionDefinition(context)) return node;
+    if(node = GetVariableDeclaration(context)) return node;
+    if(node = GetAssignment(context))          return node;
+    if(node = GetFunctionCall(context)) {
+        CheckForSeparator(context);
+        return node;
+    }
+    if(node = GetWhileStatement(context))      return node;
+    if(node = GetIn(context)) {
+        CheckForSeparator(context);
+        return node;
+    }
+    if(node = GetOut(context)) {
+        CheckForSeparator(context);
+        return node;
     }
 
-    return result;
+    SyntaxError();
 }
 
-TreeNode<AstNode>* GetBracket(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
+TreeNode<AstNode>* GetFunctionDefinition(Context* context) {
+    check_expression(context, NULL);
 
-    int sign = 1;
-    if(s[*p].data->value.text_pointer[0] == '-') {
-        sign = -1;
-        (*p)++;
+    TreeNode<AstNode>* node = NULL;
+
+    if(_tokens[_current_token].data->type == TYPE_NAME) {
+        TreeNode<AstNode>* return_type = GetReturnType(context);
+        (_current_token)++;
+        AddIdentifierToNametable(context);
+        (_current_token)++;
+        node = FunctionDefinition(_current_name_id, return_type, GetParameters(context));
     }
-    if(s[*p].data->value.text_pointer[0] == '('){
-        (*p)++;
 
-        TreeNode<AstNode>* val = GetPlusMinus(s, p);
-        $DEBUG("%s", __func__);
-        $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-        if(s[*p].data->value.text_pointer[0] != ')')
+    return node;
+}
+//int function(int hui, int elda)
+//int function()
+TreeNode<AstNode>* GetReturnType(Context* context) {
+    check_expression(context, NULL);
+
+    #define KEYWORD(NAME, NUMBER, TEXT_RECORD, TYPE, ...)                                             \
+        if(TYPE == TYPE_NAME && strncmp(&(_current_symbol), TEXT_RECORD, strlen(TEXT_RECORD)) == 0) { \
+            return NAME;                                                                              \
+        }
+
+    #include "Keywords.def"
+
+    #undef KEYWORD
+}
+
+TreeNode<AstNode>* GetParameters(Context* context) {
+    check_expression(context, NULL);
+
+    TreeNode<AstNode>* node = NULL;
+
+    if(_current_symbol == '(') {
+        (_current_token)++;
+        GetParameter(context);
+        if(_current_symbol != ')') {
             SyntaxError(__LINE__);
-        (*p)++;
-
-        if(!sign) {
-            return Mul(Num(-1), val);
-        }
-        return val;
-    }
-    else
-        if(sign == -1) (*p)--;
-        return GetFunction(s, p);
-}
-
-TreeNode<AstNode>* GetFunction(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    int start = *p;
-    double amount = 0;
-    int    sign   = 1;
-    if(s[*p].data->value.text_pointer[0] == '-') {
-        sign = -1;
-        (*p)++;
-    }
-    Operations op = ScanOperation(s, p);
-    TreeNode<AstNode>* val = NULL;
-    (*p)++;
-
-    switch(op) {
-        case SQRT:
-            val = GetPlusMinus(s, p);
-            $DEBUG("%s", __func__);
-            $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-            if(s[*p].data->value.text_pointer[0] != ')')
-                SyntaxError(__LINE__);
-            (*p)++;
-
-            if(sign == -1) {
-                return Mul(Num(-1), Sqrt(val));
-            }
-            return Sqrt(val);
-
-        case SIN:
-            val = GetPlusMinus(s, p);
-            $DEBUG("%s", __func__);
-            $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-            if(s[*p].data->value.text_pointer[0] != ')')
-                SyntaxError(__LINE__);
-            (*p)++;
-
-            if(sign == -1) {
-                return Mul(Num(-1), Sin(val));
-            }
-            return Sin(val);
-
-        case COS:
-            val = GetPlusMinus(s, p);
-            $DEBUG("%s", __func__);
-            $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-            if(s[*p].data->value.text_pointer[0] != ')')
-                SyntaxError(__LINE__);
-            (*p)++;
-
-            if(sign == -1) {
-                return Mul(Num(-1), Cos(val));
-            }
-            return Cos(val);
-
-        case UNDEF:
-            *p = start;
-            return GetVariable(s, p);
-        default:
-            warning(false, PROGRAM_ERROR);
-    }
-}
-
-TreeNode<AstNode>* GetVariable(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
-    int number_of_var = sizeof(variable_table);
-    int    sign   = 1;
-    if(s[*p].data->value.text_pointer[0] == '-') {
-        sign = -1;
-        (*p)++;
-    }
-    for(int variable_number = 0; variable_number < number_of_var; variable_number++) {
-        if(s[*p].data->value.text_pointer[0] == variable_table[variable_number]) {
-            (*p)++;
-
-            $DEBUG("%d", variable_number);
-            if(sign == -1) {
-                return Mul(Num(-1), Var(variable_number));
-            }
-            return Var(variable_number);
         }
     }
-    if(sign == -1) (*p)--;
-    return GetNumber(s, p);
+
+    return node;
 }
 
-TreeNode<AstNode>* GetNumber(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
+TreeNode<AstNode>* GetParameter(Context* context) {
+    check_expression(context, NULL);
 
-    double amount = 0;
-    int start  = *p;
-    int    sign   = 1;
-    if(s[*p].data->value.text_pointer[0] == '-') {
-        sign = -1;
-        (*p)++;
-    }
-    while('0' <= s[*p].data->value.text_pointer[0] && s[*p].data->value.text_pointer[0] <= '9') {
-        amount = amount * 10 + (s[*p].data->value.text_pointer[0] - '0');
-        (*p)++;
-    }
-    if(start == *p)
-        SyntaxError(__LINE__);
+    TreeNode<AstNode>* node = NULL;
 
-    amount *= sign;
-    return Num(amount);
+    if(_tokens[_current_token].data->type == TYPE_NAME) {
+        (_current_token)++;
+        if(_tokens[_current_token].data->type == ENGLISH_W || _tokens[_current_token].data->type == CYRILLIC_W) {
+            AddIdentifierToNametable(context);
+            node = Keyword((int)KeywordType::ARGUMENT_SEPARATOR, GetParameter(context), Identifier(_current_name_id));
+            (_current_token)++;
+        }
+        else {
+            SyntaxError(__LINE__);
+        }
+    }
+
+    return node;
 }
 
-Operations ScanOperation(const Buffer<Token>* s, int* p) {
-    $DEBUG("%s", __func__);
-    $DEBUG("%c", s[*p].data->value.text_pointer[0]);
+TreeNode<AstNode>* AddIdentifierToNametable(Context* context) {
+    check_expression(context, NULL);
 
-    char       operation[6] = "";
-    int     op_index     = 0;
-    Operations op;
-    while(s[*p].data->value.text_pointer[0] != '(' && s[*p].data->value.text_pointer[0] != '\0' && op_index < 6) {
-        operation[op_index] = s[*p].data->value.text_pointer[0];
-        (*p)++;
+}
 
-        op_index++;
-    }
-    DetectOperation(operation);
+TreeNode<AstNode>* GetVariableDeclaration(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* GetAssignment(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* GetFunctionCall(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* GetWhileStatement(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* GetIn(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* GetOut(Context* context) {
+    check_expression(context, NULL);
+
+}
+
+TreeNode<AstNode>* CheckForSeparator(Context* context) {
+    check_expression(context, NULL);
+
 }
 
 void SyntaxError(int line){

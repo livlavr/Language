@@ -17,14 +17,14 @@ enum TokenType {
 };
 
 union TokenValue {
-    double double_value;
+    int    int_value;
     char*  text_pointer;
     int    keyword_index;
 };
 
 struct Token {
-    TokenValue value = {.text_pointer = NULL};
-    TokenType  type  = UNDEFINED;
+    TokenValue value         = {.text_pointer = NULL};
+    TokenType  type          = UNDEFINED;
     int        line          = -1;
     int        index_in_line = -1;
 };
