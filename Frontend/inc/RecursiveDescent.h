@@ -29,12 +29,12 @@ TreeNode<AstNode>* GetBracket(Context* context);
 TreeNode<AstNode>* GetFunction(Context* context);
 TreeNode<AstNode>* GetIdentifier(Context* context);
 TreeNode<AstNode>* GetNumber(Context* context);
-TreeNode<AstNode>* GetAssignment(Context* context);
-TreeNode<AstNode>* GetFunctionCall(Context* context);
-TreeNode<AstNode>* GetWhileStatement(Context* context);
-TreeNode<AstNode>* GetIn(Context* context);
-TreeNode<AstNode>* GetOut(Context* context);
+// TreeNode<AstNode>* GetAssignment(Context* context);
+// TreeNode<AstNode>* GetFunctionCall(Context* context);
+// TreeNode<AstNode>* GetWhileStatement(Context* context);
+// TreeNode<AstNode>* GetIn(Context* context);
+// TreeNode<AstNode>* GetOut(Context* context);
 TreeNode<AstNode>* CheckForSeparator(Context* context);
 void               SyntaxError(int line);
-
+int                IsInNametable(Context* context);
 #endif

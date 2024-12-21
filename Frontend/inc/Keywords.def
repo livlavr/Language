@@ -1,8 +1,8 @@
 // KEYWORD(NAME, NUMBER, TEXT_RECORD, TYPE, ...)
 
-KEYWORD(IF,                  11,    "if",                      OPERATOR)
-KEYWORD(WHILE,               12,    "while",                   OPERATOR)
-KEYWORD(SIN,                 21,    "sin",                     OPERATION)
+KEYWORD(IF,                  11,    "если",                    OPERATOR)
+KEYWORD(WHILE,               12,    "циклический расслабон",          OPERATOR)
+KEYWORD(SIN,                 21,    "какая-то математическая хуйнюшка", OPERATION)
 KEYWORD(COS,                 22,    "cos",                     OPERATION)
 KEYWORD(FLOOR,               23,    "floor",                   OPERATION)
 KEYWORD(ADD,                 24,    "+",                       OPERATION)

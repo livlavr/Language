@@ -33,6 +33,7 @@
 #define IsDiv()               _current_data.type == OPERATION && _current_data.value.keyword_index == (int)KeywordType::DIV
 #define IsConst()             _current_data.type == CONST
 #define IsAssignment()        _current_data.type == OPERATOR && _current_data.value.keyword_index == (int)KeywordType::ASSIGNMENT
+#define IsIn()              _current_data.type == OPERATOR && _current_data.value.keyword_index == (int)KeywordType::IN
 
 #define SHIFT()\
     if(_current_token < context->tokens->size) {\
@@ -383,35 +384,71 @@ TreeNode<AstNode>* GetNumber(Context* context) {
     SE();
 }
 
-TreeNode<AstNode>* GetAssignment(Context* context) {
-    check_expression(context, NULL);
-
-}
-
-TreeNode<AstNode>* GetFunctionCall(Context* context) {
-    check_expression(context, NULL);
-
-}
-
-TreeNode<AstNode>* GetWhileStatement(Context* context) {
-    check_expression(context, NULL);
-
-}
-
-TreeNode<AstNode>* GetIn(Context* context) {
-    check_expression(context, NULL);
-
-}
-
-TreeNode<AstNode>* GetOut(Context* context) {
-    check_expression(context, NULL);
-
-}
-
-TreeNode<AstNode>* CheckForSeparator(Context* context) {
-    check_expression(context, NULL);
-
-}
+// TreeNode<AstNode>* GetAssignment(Context* context) {
+//     check_expression(context, NULL);
+//     int id = -1;
+//
+//     TreeNode<AstNode>* node = NULL;
+//
+//     if(IsWord()) {
+//         SHIFT();
+//         if(id = IsInNametable(context)) {
+//             if(IsAssignment()) {
+//                 SHIFT();
+//                 if(IsIn()) {
+//                     node = Keyword((int)KeywordType::ASSIGNMENT, , GetIn(context));
+//                 }
+//                 else {
+//                     node = Keyword((int)KeywordType::ASSIGNMENT, , GetExpression(context));
+//                 }
+//             }
+//             else {
+//                 SE();
+//             }
+//         }
+//         else {
+//             SE();
+//         }
+//     }
+//
+//     return node;
+// }
+//
+// int IsInNametable(Context* context) {
+//     check_expression(context, NULL);
+//
+//     for(int index = 0; index < context->name_table->size; index++) {
+//         if(strcmp(_current_pointer, context->name_table->data[index]) == 0) {
+//             return index;
+//         }
+//     }
+//
+//     return -1;
+// }
+//
+// TreeNode<AstNode>* GetFunctionCall(Context* context) {
+//     check_expression(context, NULL);
+//
+// }
+//
+// TreeNode<AstNode>* GetArguments(Context* context) {
+//
+// }
+//
+// TreeNode<AstNode>* GetWhileStatement(Context* context) {
+//     check_expression(context, NULL);
+//
+// }
+//
+// TreeNode<AstNode>* GetIn(Context* context) {
+//     check_expression(context, NULL);
+//
+// }
+//
+// TreeNode<AstNode>* GetOut(Context* context) {
+//     check_expression(context, NULL);
+//
+// }
 
 void SyntaxError(int line) {
     color_printf(RED_COLOR, BOLD, "BRUUUUH Syntax Error in %d\n", line);
