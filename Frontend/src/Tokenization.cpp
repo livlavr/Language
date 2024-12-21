@@ -4,8 +4,9 @@
 #include <string.h>
 
 #include "custom_asserts.h"
-#include "Tokenization.h"
 #include "debug_macros.h"
+#include "Tokenization.h"
+#include "BufferSpecializations.h"
 
 static const int NOT_KEYWORD = 0;
 
@@ -171,11 +172,11 @@ static TYPE_OF_ERROR CreateToken(Buffer<Token>* tokens, TokenValue value, int* l
 static int AddKeywordToken(const char* string, Buffer<Token>* tokens, int* line_index, int* char_index) {
     check_expression(string, POINTER_IS_NULL);
 
-    #define KEYWORD(NAME, ID, TEXT_RECORD, TYPE, ...)\
-        if(strstr(string, TEXT_RECORD) == string) {\
-            _CreateToken(TokenValue {.keyword_index = ID}, TYPE);\
-            *char_index += (int)strlen(TEXT_RECORD);\
-            return ID;\
+    #define KEYWORD(NAME, ID, TEXT_RECORD, TYPE, ...)               \
+        if(strstr(string, TEXT_RECORD) == string) {                 \
+            _CreateToken(TokenValue {.keyword_index = ID}, TYPE);   \
+            *char_index += (int)strlen(TEXT_RECORD);                \
+            return ID;                                              \
         }
 
     #include "Keywords.def"

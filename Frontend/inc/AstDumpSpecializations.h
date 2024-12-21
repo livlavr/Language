@@ -44,12 +44,17 @@ inline TYPE_OF_ERROR ProcessNode<AstNode>(TreeNode<AstNode>* node, FILE* dot_fil
 }
 
 CONST      = 0,
+
 CYRILLIC_W = 1,
 ENGLISH_W  = 1 << 1,
+
 OPERATION  = 1 << 2,
+
 BRACKET    = 1 << 3,
 SEPARATOR  = 1 << 4,
+
 OPERATOR   = 1 << 5,
+
 TYPE_NAME  = 1 << 6,
 KEYWORD    = 1 << 7,
 UNDEFINED  = 1 << 8,

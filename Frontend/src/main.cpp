@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <ctype.h>
+#include <cmath>
 
 #include "Tokenization.h"
+#include "BufferSpecializations.h"
 #include "debug_macros.h"
 
 int main() {
@@ -39,4 +41,5 @@ int main() {
 
     BufferDtor(&code);
     BufferDtor(&lines);
+    BufferDtor(&tokens);
 }
