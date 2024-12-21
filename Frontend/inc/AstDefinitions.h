@@ -60,15 +60,15 @@ struct AstNode {
     int          scope = -1;
 };
 
-TreeNode<AstNode>* CreateAstNode(AstNode ast_value,
-    TreeNode<AstNode>* left, TreeNode<AstNode>* right);
+TreeNode<AstNode>* CreateAstNode(AstNode ast_value, TreeNode<AstNode>* left, TreeNode<AstNode>* right);
+TYPE_OF_ERROR      AstTreeInit(Tree<AstNode>* tree, AstNode root_value);
 
-#define Keyword(keyword_id, left, right)                                           CreateAstNode({.type = AstNodeType::KEYWORD,             .data = {.id = keyword_id   }, .scope = context->current_scope}, left,          right                    )
-#define Constant(number)                                                           CreateAstNode({.type = AstNodeType::CONSTANT,            .data = {.int_value = number}, .scope = context->current_scope}, NULL,          NULL                     )
-#define Identifier(identifier_id)                                                  CreateAstNode({.type = AstNodeType::IDENTIFIER,          .data = {.id = identifier_id}, .scope = context->current_scope}, NULL,          NULL                     )
-#define Parameters(GetParameters, function_body)                                   CreateAstNode({.type = AstNodeType::PARAMETERS,          .data = {.id = -1           }, .scope = context->current_scope}, GetParameters, function_body            )
-#define FunctionCall(GetArgs, identifier_id)                                       CreateAstNode({.type = AstNodeType::FUNCTION_CALL,       .data = {.id = -1           }, .scope = context->current_scope}, GetArgs,       Identifier(identifier_id))
-#define VariableDeclaration(identifier_id, type_name, identifier_or_GetExpression) CreateAstNode({.type = AstNodeType::VAR_DECLARATION,     .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     identifier_or_expression )
-#define FunctionDefinition(identifier_id, type_name, GetParameters)                CreateAstNode({.type = AstNodeType::FUNCTION_DEFINITION, .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     GetParameters            )
+#define Keyword(keyword_id, left, right)                                           CreateAstNode(AstNode {.type = AstNodeType::KEYWORD,             .data = {.id = keyword_id   }, .scope = context->current_scope}, left,          right                    )
+#define Constant(number)                                                           CreateAstNode(AstNode {.type = AstNodeType::CONSTANT,            .data = {.int_value = number}, .scope = context->current_scope}, NULL,          NULL                     )
+#define Identifier(identifier_id)                                                  CreateAstNode(AstNode {.type = AstNodeType::IDENTIFIER,          .data = {.id = identifier_id}, .scope = context->current_scope}, NULL,          NULL                     )
+#define Parameters(GetParameters, function_body)                                   CreateAstNode(AstNode {.type = AstNodeType::PARAMETERS,          .data = {.id = -1           }, .scope = context->current_scope}, GetParameters, function_body            )
+#define FunctionCall(GetArgs, identifier_id)                                       CreateAstNode(AstNode {.type = AstNodeType::FUNCTION_CALL,       .data = {.id = -1           }, .scope = context->current_scope}, GetArgs,       Identifier(identifier_id))
+#define VariableDeclaration(identifier_id, type_name, identifier_or_GetExpression) CreateAstNode(AstNode {.type = AstNodeType::VAR_DECLARATION,     .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     identifier_or_GetExpression)
+#define FunctionDefinition(identifier_id, type_name, GetParameters)                CreateAstNode(AstNode {.type = AstNodeType::FUNCTION_DEFINITION, .data = {.id = identifier_id}, .scope = context->current_scope}, type_name,     GetParameters            )
 
 #endif

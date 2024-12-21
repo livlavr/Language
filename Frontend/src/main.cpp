@@ -2,8 +2,11 @@
 #include <ctype.h>
 #include <cmath>
 
+#include "AstDefinitions.h"
+#include "AstDumpSpecializations.h"
 #include "Tokenization.h"
 #include "BufferSpecializations.h"
+#include "RecursiveDescent.h"
 #include "debug_macros.h"
 
 int main() {
@@ -39,7 +42,21 @@ int main() {
         }
     }
 
+    Context context = {};
+    Tree<AstNode> tree = {};
+    AstTreeInit(&tree, {});
+    context.tokens = &tokens;
+    Buffer<char*> name_table = {};
+    context.name_table       = &name_table;
+
+    CreateAstTree(&context, &tree);
+
+    TreeDump(&tree);
+    OpenDump(&tree);
+
+    TreeDtor(&tree);
     BufferDtor(&code);
+    BufferDtor(&name_table);
     BufferDtor(&lines);
     BufferDtor(&tokens);
 }

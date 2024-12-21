@@ -11,10 +11,9 @@
 #include "debug_macros.h"
 
 template <typename T>
-inline TYPE_OF_ERROR BufferInit(Buffer<T>* buffer_struct, int capacity) {
-    check_expression(buffer_struct, POINTER_IS_NULL);
+inline TYPE_OF_ERROR BufferInit(Buffer<T>* buffer_struct, int capacity) {//TODO fix
 
-    buffer_struct->data = (T*)calloc(capacity, sizeof(T));
+    buffer_struct->data = (T*)calloc((size_t)capacity, sizeof(T));
     warning(buffer_struct->data, POINTER_IS_NULL);
 
     buffer_struct->capacity = capacity;
@@ -103,8 +102,6 @@ inline TYPE_OF_ERROR GetLinePointersFromFile(Buffer<char*>* buffer_struct, Buffe
         }
     }
 
-    printf(">%s", buffer_struct->data[0]);//TODO
-
     return SUCCESS;
 }
 
@@ -152,7 +149,7 @@ template <typename T>
 inline TYPE_OF_ERROR EnlargeBufferCapacity(Buffer<T>* buffer_struct) {
     warning(buffer_struct, POINTER_IS_NULL);
 
-    buffer_struct->data = (T*)realloc(sizeof(T)*(buffer_struct->capacity)*2);
+    buffer_struct->data = (T*)realloc(buffer_struct->data, (sizeof(T)*((size_t)(buffer_struct->capacity)*2)));
     buffer_struct->capacity *= 2;
 
     return SUCCESS;

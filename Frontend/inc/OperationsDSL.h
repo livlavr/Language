@@ -1,17 +1,16 @@
 #ifndef OPERATIONS_DSL_H_
 #define OPERATIONS_DSL_H_
 
-//TODO scope
-#define  Num(amount     ) CreateAstNode({.type = CONSTANT,   .data = {.int_value       = amount   }}, NULL, NULL )
-#define  Var(var_id     ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = var_id   }}, NULL, NULL )
-#define  Add(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = ADD      }}, left, right)
-#define  Sub(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = SUB      }}, left, right)
-#define  Mul(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = MUL      }}, left, right)
-#define  Div(left, right) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = DIV      }}, left, right)
-#define Sqrt(left       ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = SQRT     }}, left, NULL )
-#define  Sin(left       ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = SIN      }}, left, NULL )
-#define  Cos(left       ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = COS      }}, left, NULL )
-#define   Ln(left       ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = LN       }}, left, NULL )
-#define  Exp(left       ) CreateAstNode({.type = IDENTIFIER, .data = {.identifier      = EXP      }}, left, NULL )
+#include "AstDefinitions.h"
+
+#define  Num(amount     ) CreateAstNode(AstNode {.type = AstNodeType::CONSTANT,.data = {.int_value = amount     }, .scope = context->current_scope}, NULL, NULL)
+#define  Add(left, right) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::ADD   }, .scope = context->current_scope}, left, right)
+#define  Sub(left, right) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::SUB   }, .scope = context->current_scope}, left, right)
+#define  Mul(left, right) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::MUL   }, .scope = context->current_scope}, left, right)
+#define  Div(left, right) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::DIV   }, .scope = context->current_scope}, left, right)
+#define  Sqrt(left      ) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::SQRT  }, .scope = context->current_scope}, left, NULL)
+#define  Sin(left       ) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::SIN   }, .scope = context->current_scope}, left, NULL)
+#define  Cos(left       ) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::COS   }, .scope = context->current_scope}, left, NULL)
+#define  Floor(left     ) CreateAstNode(AstNode {.type = AstNodeType::KEYWORD, .data = {.id = (int)KeywordType::FLOOR }, .scope = context->current_scope}, left, NULL)
 
 #endif

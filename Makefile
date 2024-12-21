@@ -1,6 +1,6 @@
 CXX           = gcc-14
 
-FRONT_SRC     = main.cpp Tokenization.cpp
+FRONT_SRC     = main.cpp Tokenization.cpp Ast.cpp RecursiveDescent.cpp
 SUBMODULE_SRC = Color-printf/color_printf.cpp
 
 FRONT_DIR     = ./Frontend
@@ -51,7 +51,8 @@ frontend_clean :
 	@printf  "$(YELLOW_COLOR)$(FRONTEND) CLEANED$(DEFAULT_COLOR)\n"
 
 clean :
-	@rm -f -r $(addprefix $(BUILD_DIR), *.o) *.dSYM
+	@make frontend_clean
+	@rm -f -r $(addprefix $(BUILD_DIR), *.o) *.dSYM ./Tree-dumps/*
 	@printf  "$(YELLOW_COLOR)$(TARGET) CLEANED$(DEFAULT_COLOR)\n"
 
 doxygen :

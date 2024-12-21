@@ -198,18 +198,18 @@ inline void PrintTree(const TreeNode<T>* node) {
 
 template<typename T>
 inline void PrintNode(FILE *stream, const TreeNode<T> *node) {
-    printf("()");
+    fprintf(stream, "()");
 
 }
 
 template<>
 inline void PrintNode<int>(FILE *stream, const TreeNode<int> *node) {
-    printf("%d", node->value);
+    fprintf(stream, "%d", node->value);
 }
 
 template<>
 inline void PrintNode<double>(FILE *stream, const TreeNode<double> *node) {
-    printf("%.3lf", node->value);
+    fprintf(stream, "%.3lf", node->value);
 }
 
 #endif

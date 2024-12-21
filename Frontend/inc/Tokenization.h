@@ -3,7 +3,7 @@
 
 #include "Buffer.h"
 
-enum TokenType {
+enum TokenType { //TODO delete useless
     CONST      = 0,
     CYRILLIC_W = 1,
     ENGLISH_W  = 1 << 1,
