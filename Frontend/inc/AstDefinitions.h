@@ -71,29 +71,23 @@ enum AstNodeType{
     FUNCTION_DEFINITION = 1 << 5,
 };
 
-union NodeValue{
-    double     double_value;
-    size_t     variable_index;
-    Operations operation;
-};
-
 union AstNodeValue{
     double double_value;
-    int    number;
+    int    identifier;
 };
 
 struct AstNode {
     AstNodeType  type;
-    AstNodeValue value = {.double_value = 0};
+    AstNodeValue data = {.double_value = 0};
     int          scope = -1;
 };
 
 TreeNode<AstNode>* CreateAstNode(AstNode ast_value,
     TreeNode<AstNode>* left, TreeNode<AstNode>* right);
 
-#define Keyword(scope, id, left, right)        CreateAstNode({.type = KEYWORD,  .value = {.number = id},  .scope = scope}, left, right)
-#define Constant(scope, number)                CreateAstNode({.type = CONSTANT, .value = {.double_value = number}, .scope = scope}, NULL, NULL)
-#define Identifier(scope, id)                  CreateAstNode({.type = IDENTIFIER, .value = {.number = id}, .scope = scope})
+#define Keyword(scope, id, left, right)        CreateAstNode({.type = KEYWORD,    .data = {.number = id},           .scope = scope}, left, right)
+#define Constant(scope, number)                CreateAstNode({.type = CONSTANT,   .data = {.double_value = number}, .scope = scope}, NULL, NULL)
+#define Identifier(scope, id)                  CreateAstNode({.type = IDENTIFIER, .data = {.number = id},           .scope = scope}, NULL, NULL)
 #define Parameters(scope, left, right)         Keyword(scope, PARAMETERS, left, right)
 #define FunctionCall(scope, left, right)       Keyword(scope, FUNCTION_CALL, left, right)
 #define VarDeclaration(scope, left, right)     Keyword(scope, VAR_DECLARATION, left, right)
