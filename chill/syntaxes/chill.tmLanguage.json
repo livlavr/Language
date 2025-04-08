@@ -1,0 +1,32 @@
+{
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Chill Guy Language",
+	"patterns": [
+		{
+			"include": "#keywords"
+		},
+		{
+			"include": "#strings"
+		}
+	],
+	"repository": {
+		"keywords": {
+			"patterns": [{
+				"name": "keyword.control.chill",
+				"match": "\\b(if|chill|for|return)\\b"
+			}]
+		},
+		"strings": {
+			"name": "string.quoted.double.chill",
+			"begin": "\"",
+			"end": "\"",
+			"patterns": [
+				{
+					"name": "constant.character.escape.chill",
+					"match": "\\\\."
+				}
+			]
+		}
+	},
+	"scopeName": "source.chill"
+}

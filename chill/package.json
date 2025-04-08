@@ -1,0 +1,25 @@
+{
+  "name": "chill",
+  "displayName": "CHILL",
+  "description": "Syntax highlight for chill languagw",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.96.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "chill",
+      "aliases": ["Chill Guy Language", "chill"],
+      "extensions": [".chill"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "chill",
+      "scopeName": "source.chill",
+      "path": "./syntaxes/chill.tmLanguage.json"
+    }]
+  }
+}

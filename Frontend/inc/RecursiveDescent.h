@@ -35,6 +35,6 @@ TreeNode<AstNode>* GetNumber(Context* context);
 // TreeNode<AstNode>* GetIn(Context* context);
 // TreeNode<AstNode>* GetOut(Context* context);
 TreeNode<AstNode>* CheckForSeparator(Context* context);
-void               SyntaxError(int line);
+void               SyntaxError(Context* context);
 int                IsInNametable(Context* context);
 #endif

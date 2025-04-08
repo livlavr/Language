@@ -9,11 +9,11 @@
 #include "RecursiveDescent.h"
 #include "debug_macros.h"
 
-int main() {
+int main (int argc, const char* argv[]) {
     Buffer<char>   code   = {};
     Buffer<char*>  lines  = {};
     Buffer<Token> tokens  = {};
-    ReadFile(&code, "tests/test.txt");
+    ReadFile(&code, (argc == 2) ? argv[1] : "tests/test.txt");
     // $DEBUG("%d", code.size);
     GetLinePointersFromFile(&lines, &code);
 

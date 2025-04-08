@@ -26,14 +26,14 @@
 #define IsTypeName()          _current_data.type == TYPE_NAME
 #define IsArgumentSeparator() _current_data.type == SEPARATOR && _current_data.value.keyword_index == (int)KeywordType::ARGUMENT_SEPARATOR
 #define IsOperatorSeparator() _current_data.type == SEPARATOR && _current_data.value.keyword_index == (int)KeywordType::OPERATOR_SEPARATOR
-#define SE()                  SyntaxError(__LINE__);
+#define SE()                  SyntaxError(context);
 #define IsAdd()               _current_data.type == OPERATION && _current_data.value.keyword_index == (int)KeywordType::ADD
 #define IsSub()               _current_data.type == OPERATION && _current_data.value.keyword_index == (int)KeywordType::SUB
 #define IsMul()               _current_data.type == OPERATION && _current_data.value.keyword_index == (int)KeywordType::MUL
 #define IsDiv()               _current_data.type == OPERATION && _current_data.value.keyword_index == (int)KeywordType::DIV
 #define IsConst()             _current_data.type == CONST
 #define IsAssignment()        _current_data.type == OPERATOR && _current_data.value.keyword_index == (int)KeywordType::ASSIGNMENT
-#define IsIn()              _current_data.type == OPERATOR && _current_data.value.keyword_index == (int)KeywordType::IN
+#define IsIn()                _current_data.type == OPERATOR && _current_data.value.keyword_index == (int)KeywordType::IN
 
 #define SHIFT()\
     if(_current_token < context->tokens->size) {\
@@ -450,7 +450,15 @@ TreeNode<AstNode>* GetNumber(Context* context) {
 //
 // }
 
-void SyntaxError(int line) {
-    color_printf(RED_COLOR, BOLD, "BRUUUUH Syntax Error in %d\n", line);
+void SyntaxError(Context* context) {
+    if(IsConst()) {
+        color_printf(RED_COLOR, BOLD, "< %d > - Int Value", _current_value.int_value);
+    }
+    if(IsWord()) {
+        PrintLine(_current_pointer, 0);
+    }
+
+    color_printf(RED_COLOR, BOLD, "< %d > - Keyword index", _current_value.keyword_index);
+
     exit(0);
 }
